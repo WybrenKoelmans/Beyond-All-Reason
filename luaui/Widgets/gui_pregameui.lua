@@ -416,7 +416,8 @@ function widget:DrawWorld()
 	local id
 	for i = 1, #teamList do
 		local teamID = teamList[i]
-		local tsx, tsy, tsz = Spring.GetTeamStartPosition(teamID)
+		local tsx, tsy, tsz, tsf = Spring.GetTeamStartPosition(teamID)
+		Sprint.Echo(teamID, tsx, tsy, tsz, tsf)
 		if tsx and tsx > 0 then
 			local startUnitDefID = Spring.GetTeamRulesParam(teamID, 'startUnit')
 			if startUnitDefID then
@@ -424,7 +425,7 @@ function widget:DrawWorld()
 				if teamStartPositions[teamID] ~= id then
 					removeUnitShape(teamStartPositions[teamID])
 					teamStartPositions[teamID] = id
-					addUnitShape(id, startUnitDefID, tsx, Spring.GetGroundHeight(tsx, tsz), tsz, 0, teamID, 1)
+					addUnitShape(id, startUnitDefID, tsx, Spring.GetGroundHeight(tsx, tsz), tsz, tsf, teamID, 1)
 				end
 			end
 		end

@@ -463,7 +463,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local startUnitList = {}
-	local function spawnStartUnit(teamID, x, z)
+	local function spawnStartUnit(teamID, x, z, facing)
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 
@@ -498,6 +498,7 @@ if gadgetHandler:IsSyncedCode() then
 					local paralyzemult = 3 * 0.025 -- 3 seconds of paralyze
 					local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
 					Spring.SetUnitHealth(unitID, { paralyze = paralyzedamage })
+					Spring.SetUnitRotation(unitID, 0, -facing, 0)
 				end
 			end
 		end
@@ -515,6 +516,7 @@ if gadgetHandler:IsSyncedCode() then
 		local startPoint = GG.ffaStartPoints[allyTeamID]
 		local x = startPoint.x
 		local z = startPoint.z
+		local facing = startPoint.facing or math.random(0, 3)
 
 		-- if we are in TeamFFA but still using automatic spawning (i.e. no start boxes), we want to avoid
 		-- spawning all commanders in the exact same position
@@ -530,12 +532,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		spawnStartUnit(teamID, x, z)
+		spawnStartUnit(teamID, x, z, facing)
 	end
 
 	local function spawnRegularly(teamID, allyTeamID)
-		local x, _, z = Spring.GetTeamStartPosition(teamID)
+		local x, _, z, facing = Spring.GetTeamStartPosition(teamID)
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+
+
+		Spring.Echo("Spawning teamID: " .. teamID .. " at (" .. x .. ", " .. z .. ") with facing: " .. facing)
 
 		-- if its choose-in-game mode, see if we need to autoplace anyone
 		if Game.startPosType == 2 then
@@ -550,8 +555,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-
-		spawnStartUnit(teamID, x, z)
+		spawnStartUnit(teamID, x, z, facing)
 	end
 
 	----------------------------------------------------------------

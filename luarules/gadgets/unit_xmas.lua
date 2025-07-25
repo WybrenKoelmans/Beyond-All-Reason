@@ -217,7 +217,7 @@ function gadget:GameFrame(n)
 				if uID ~= nil then
 					decorationCount = decorationCount + 1
 					decorations[uID] = Spring.GetGameFrame() + hasDecoration[data[5]][3] + (random()*(hasDecoration[data[5]][3]*0.33))
-					Spring.SetUnitRotation(uID,random()*360,random()*360,random()*360)
+					Spring.SetUnitRotation(uID,random()*360,random()*360,random()*360) --FIXME: rotation should be in radians, but is in degrees
 					local impulseMult = hasDecoration[data[5]][2]
 					Spring.AddUnitImpulse(uID, (random()-0.5)*(impulseMult/2), 1+(random()*impulseMult), (random()-0.5)*(impulseMult/2))
 				end
@@ -232,7 +232,7 @@ function gadget:GameFrame(n)
 		if not decorations[unitID] then
 			decorationCount = decorationCount + 1
 			decorations[unitID] = Spring.GetGameFrame() + 2000 + (random()*1000)
-			Spring.SetUnitRotation(unitID,random()*360,random()*360,random()*360)
+			Spring.SetUnitRotation(unitID,random()*360,random()*360,random()*360) --FIXME: rotation should be in radians, but is in degrees
 			--Spring.AddUnitImpulse(unitID, (random()-0.5)*2, 3.8+(random()*1), (random()-0.5)*2)
 			local impulseMult = 80
 			Spring.AddUnitImpulse(unitID, (random()-0.5)*(impulseMult/3), 1+(random()*(impulseMult/1.6)), (random()-0.5)*(impulseMult/3))
