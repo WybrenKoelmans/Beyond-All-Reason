@@ -37,6 +37,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	local changeStartUnitRegex = 'changeStartUnit(%d+)$'
 	local startUnitParamName = 'startUnit'
+	local facingParamName = 'comStartFacing'
 	local closeSpawnDist = 350
 
 	----------------------------------------------------------------
@@ -306,6 +307,20 @@ if gadgetHandler:IsSyncedCode() then
 		if not playerIsSpec and (draftMode ~= nil and draftMode ~= "disabled") then
 			DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
 		end
+
+		if string.sub(msg, 1, string.len("requestStartFacing")) == "requestStartFacing" then
+			local facing = msg:match("requestStartFacing (%-?%d+%.?%d*)")
+			facing = tonumber(facing)
+			if facing then
+				local _, _, _, teamID = Spring.GetPlayerInfo(playerID, false)
+				if teamID then
+					local readyState = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
+					if readyState == 0 or readyState == 4 then -- only allow facing startpos if not yet placed or forcibly readied
+						spSetTeamRulesParam(teamID, facingParamName, facing, { allied = true, public = false })
+					end
+				end
+			end
+		end
 	end
 
 	----------------------------------------------------------------
@@ -464,7 +479,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local startUnitList = {}
 	local startUnitBlocking = {}
-	local function spawnStartUnit(teamID, x, z)
+
+	local function spawnStartUnit(teamID, x, z, facing)
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 
@@ -499,6 +515,9 @@ if gadgetHandler:IsSyncedCode() then
 					local paralyzemult = 3 * 0.025 -- 3 seconds of paralyze
 					local paralyzedamage = (umaxhealth - uparalyze) + (umaxhealth * paralyzemult)
 					Spring.SetUnitHealth(unitID, { paralyze = paralyzedamage })
+					Spring.SetUnitRotation(unitID, 0, -facing, 0)
+					Spring.Echo("Spawning " .. startUnit .. " for team " .. teamID .. " at " .. x .. ", " .. y .. ", " .. z, "facing " .. facing)
+
 					startUnitBlocking[unitID] = { Spring.GetUnitBlocking(unitID) }
 					Spring.SetUnitBlocking(unitID, false, false, false, false, false, false, false)
 				end
@@ -533,11 +552,13 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		spawnStartUnit(teamID, x, z)
+		local facing = spGetTeamRulesParam(teamID, facingParamName) or 0
+		spawnStartUnit(teamID, x, z, facing)
 	end
 
 	local function spawnRegularly(teamID, allyTeamID)
 		local x, _, z = Spring.GetTeamStartPosition(teamID)
+		Spring.Echo("spawnRegularly " .. teamID .. " at " .. x .. ", " .. z)
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
 
 		-- if its choose-in-game mode, see if we need to autoplace anyone
@@ -545,16 +566,22 @@ if gadgetHandler:IsSyncedCode() then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
 				-- guess points for the ones classified in startPointTable as not genuine
 				x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
+				Spring.Echo("need to guess " .. teamID .. " at " .. x .. ", " .. z)
 			else
 				-- fallback
 				if x <= 0 or z <= 0 then
 					x = (xmin + xmax) / 2
 					z = (zmin + zmax) / 2
 				end
+
+				Spring.Echo("fallback " .. teamID .. " at " .. x .. ", " .. z)
 			end
 		end
 
-		spawnStartUnit(teamID, x, z)
+		local facing = spGetTeamRulesParam(teamID, facingParamName) or 0
+
+		Spring.Echo("spawnRegularly 2 " .. teamID .. " at " .. x .. ", " .. z)
+		spawnStartUnit(teamID, x, z, facing)
 	end
 
 	----------------------------------------------------------------
