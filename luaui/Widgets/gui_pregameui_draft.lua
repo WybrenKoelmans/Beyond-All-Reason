@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "Floris, Tom Fyuri",
 		date = "2024",
 		license = "GNU GPL, v2 or later",
-		layer = -3,
+		layer = 5,
 		enabled = true
 	}
 end
